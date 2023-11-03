@@ -1,15 +1,27 @@
-lines = ['-DOCSTART- -X- -X- O\n',
-         '\n',
-         'SOCCER NN B-NP O\n',
-         '- : O O\n',
-         'JAPAN NNP B-NP B-LOC\n',
-         'GET VB B-VP O\n',
-         'LUCKY NNP B-NP O\n',
-         'WIN NNP I-NP O\n',
-         ', , O O\n',
-         'CHINA NNP B-NP B-PER\n']
+# # from model import BertModelNer
+# # from dataset import ConllDataset
+# # from torch.utils.data import DataLoader
 
-for line in lines:
-    print(len(line.split()))
+# # dataset = ConllDataset("data/test.txt")
+# # loader = DataLoader(dataset, batch_size=16, shuffle=False)
+# # model = BertModelNer(label_num=9)
 
+# # for batch in loader:
+# #     print(batch)
+    
+# #     break
 
+# from transformers import AutoTokenizer
+
+# sentence = "The cat ate the fat rat"
+# tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased',force_download=True)
+# tokenized_sentence = tokenizer(sentence, 
+#                                padding=True, 
+#                                truncation=True,
+#                                max_length=512, 
+#                                return_tensors='pt')
+# print(tokenized_sentence)
+
+a = [(1, 2)]
+for b, c in a:
+    print(b, c)

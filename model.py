@@ -1,8 +1,7 @@
 import os
-
 import torch
-from transformers import AutoTokenizer, BertModel
-from torch import nn, functional
+from transformers import BertModel
+from torch import nn
 
 class BertModelNer(nn.Module):
     def __init__(self, label_num=9):
@@ -25,6 +24,7 @@ class BertModelNer(nn.Module):
     def SaveModel(self):
         os.makedirs("trained_model", exist_ok=True)
         torch.save(self, os.path.join("trained_model/model.pt"))
+        
 
 # tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 # model = BertModelNer()
