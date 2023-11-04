@@ -1,7 +1,5 @@
-import torch
+from transformers import AutoTokenizer
 
-a = torch.Tensor([[1, 2, 3]])
-b = torch.Tensor([[3, 2, 1]])
-c = [a, b]
-d = torch.cat([x for x in c], 0)
-print(d)
+sentences = ["I am in Paris"]
+tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
+print(tokenizer(sentences, padding='max_length', truncation=True, max_length=512, return_tensors='pt'))

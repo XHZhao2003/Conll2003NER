@@ -15,10 +15,9 @@ class BertModelNer(nn.Module):
             nn.Softmax(dim=2)
         )
 
-    def forward(self, input_ids):
-        last_hidden_state = self.bertModel(input_ids).last_hidden_state
-        print(type(last_hidden_state))
-        print(last_hidden_state.shape)
+    def forward(self, input_ids, token_type_ids, attention_masks):
+        last_hidden_state = self.bertModel(
+            input_ids, token_type_ids, attention_masks).last_hidden_state
         return self.classifier(last_hidden_state)
 
     def SaveModel(self):

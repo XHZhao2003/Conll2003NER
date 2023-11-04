@@ -1,7 +1,48 @@
 from torch.utils.data import Dataset
+from torch.nn import functional as F
 from transformers import AutoTokenizer
 import numpy as np
 import torch
+
+# example: 
+#   onehot(list[0, 2, 3], 5)
+#   > Tensor[[1, 0, 0, 0, 0],[0, 0, 1, 0, 0], [0, 0, 0, 1, 0]]
+def one_hot(label_list, num_class=9):
+    label = []
+    for x in label_list:
+        label.append([x])
+    return torch.zeros(len(label_list), num_class).scatter(1, torch.Tensor(label).long(), 1)
+
+# input: a batch of (raw sentence, label)
+# output: input_ids, token_type_ids, attention_masks, one_hot_labels (after padding)
+# shape for bert_input: batch * max_length
+# shape for labels: batch * max_length * num_classes
+def collate_fn(data):
+    sentences, labels = [], []
+    max_length = 512
+    tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
+    
+    for sentence, _ in data:
+        sentences.append(sentence)
+    
+    tokenized_sentence = tokenizer(
+        sentences,
+        padding='max_length',
+        truncation = True,
+        max_length = max_length,
+        return_tensors='pt'
+    )
+    
+    
+    for _, label in data:
+        # [CLS, tokens, PAD, ...]
+        pad_label = [0] + label + [0] * (max_length - 1 - len(label))
+        
+        one_hot_label = one_hot(pad_label)
+        labels.append(torch.unsqueeze(one_hot_label, 0))
+    one_hot_labels = torch.cat([x for x in labels], 0)
+    
+    return tokenized_sentence['input_ids'], tokenized_sentence['token_type_ids'], tokenized_sentence['attention_mask'], one_hot_labels
 
 class ConllDataset(Dataset):
     def __init__(self, data_path):
@@ -23,7 +64,8 @@ class ConllDataset(Dataset):
         self.ReadRawData()
 
     def ReadRawData(self):
-        # Read raw data into dataset
+        # Read raw data 
+        # save raw sentence and labels
         tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
         doc_start = "-DOCSTART- -X- -X- O\n"
         with open(self.data_path, mode='r') as data_file:
@@ -36,14 +78,7 @@ class ConllDataset(Dataset):
                     continue
                 if len(line) == 0:
                     if len(sentence) > 0:
-                        tokenized_sentence = tokenizer(
-                            sentence,
-                            padding=True,
-                            truncation=True,
-                            max_length=512,
-                            return_tensors='pt'
-                        )
-                        self.sentences.append(tokenized_sentence['input_ids'])
+                        self.sentences.append(sentence)
                         self.labels.append(label)
                         sentence = ""
                         label = []
@@ -59,20 +94,4 @@ class ConllDataset(Dataset):
     def __getitem__(self, item):
         return self.sentences[item], self.labels[item]
 
-def collate_fn(data):
-    max_length = 512
-    sentence_list = []
-    label_list = []
-    for sentence, label in data:
-        # sentence should be [token_1, .., token_n, 0, .., 0]
-        # label shoule be [0, label_1, .., label_n, 0, .., 0] 
-        # for [CLS, sentence, SEP, PAD, ..]
-        collated_sentence = torch.Tensor(np.pad(np.array(sentence), 
-                                                ((0, 0), (0, max_length - sentence.shape[1]))))
-        sentence_list.append(collated_sentence)
-        collated_label = torch.Tensor(np.pad(np.array(label), ((1, max_length - 1 - len(label)))))
-        label_list.append(torch.unsqueeze(collated_label, 0))
-    sentence_batch = torch.cat([sentence for sentence in sentence_list], 0)
-    label_batch = torch.cat([label for label in label_list], 0)
-    return sentence_batch, label_batch
         
