@@ -61,14 +61,18 @@ class ConllDataset(Dataset):
 
 def collate_fn(data):
     max_length = 512
-    batch_sentence = []
-    batch_label = []
+    sentence_list = []
+    label_list = []
     for sentence, label in data:
-        collated_sentence = np.pad(np.array(sentence), ((0, max_length - len(sentence))))
-        batch_sentence.append(torch.Tensor(collated_sentence))
-        
-        batch_label.append(torch.Tensor(label))
-    print(len(batch_sentence))
-    print(len(batch_label))
-    return torch.Tensor(batch_sentence), torch.Tensor(batch_label)
+        # sentence should be [token_1, .., token_n, 0, .., 0]
+        # label shoule be [0, label_1, .., label_n, 0, .., 0] 
+        # for [CLS, sentence, SEP, PAD, ..]
+        collated_sentence = torch.Tensor(np.pad(np.array(sentence), 
+                                                ((0, 0), (0, max_length - sentence.shape[1]))))
+        sentence_list.append(collated_sentence)
+        collated_label = torch.Tensor(np.pad(np.array(label), ((1, max_length - 1 - len(label)))))
+        label_list.append(torch.unsqueeze(collated_label, 0))
+    sentence_batch = torch.cat([sentence for sentence in sentence_list], 0)
+    label_batch = torch.cat([label for label in label_list], 0)
+    return sentence_batch, label_batch
         

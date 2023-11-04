@@ -31,10 +31,8 @@ model.to(device)
 # print("Total number of parameters is %d" %(para_num))
 
 for epoch in tqdm(range(1, epoch_num + 1), ncols=12):
-    for sentences, labels in tqdm(train_dataloader, ncols=12):
-        print(sentences.shape)
-        print(labels.shape)
-        print(sentences[0])
+    for sentence, label in tqdm(train_dataloader, ncols=12):
         break
+    break
     
 
