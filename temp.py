@@ -1,5 +1,7 @@
-from transformers import AutoTokenizer
+from torch.nn import CrossEntropyLoss
+from torch import Tensor as t
+from tqdm import tqdm
+import time
 
-sentences = ["I am in Paris"]
-tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
-print(tokenizer(sentences, padding='max_length', truncation=True, max_length=512, return_tensors='pt'))
+for i in tqdm(range(10), ncols=50, total=10):
+    time.sleep(2)

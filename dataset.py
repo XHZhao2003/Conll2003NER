@@ -4,19 +4,10 @@ from transformers import AutoTokenizer
 import numpy as np
 import torch
 
-# example: 
-#   onehot(list[0, 2, 3], 5)
-#   > Tensor[[1, 0, 0, 0, 0],[0, 0, 1, 0, 0], [0, 0, 0, 1, 0]]
-def one_hot(label_list, num_class=9):
-    label = []
-    for x in label_list:
-        label.append([x])
-    return torch.zeros(len(label_list), num_class).scatter(1, torch.Tensor(label).long(), 1)
-
 # input: a batch of (raw sentence, label)
 # output: input_ids, token_type_ids, attention_masks, one_hot_labels (after padding)
-# shape for bert_input: batch * max_length
-# shape for labels: batch * max_length * num_classes
+# shape for output: (batch, max_length)
+# shape for label: (batch * max_length)
 def collate_fn(data):
     sentences, labels = [], []
     max_length = 512
@@ -36,13 +27,11 @@ def collate_fn(data):
     
     for _, label in data:
         # [CLS, tokens, PAD, ...]
-        pad_label = [0] + label + [0] * (max_length - 1 - len(label))
-        
-        one_hot_label = one_hot(pad_label)
-        labels.append(torch.unsqueeze(one_hot_label, 0))
-    one_hot_labels = torch.cat([x for x in labels], 0)
+        pad_label = torch.Tensor([0] + label + [0] * (max_length - 1 - len(label))).long()
+        labels.append(pad_label)
+    collated_labels = torch.cat([x for x in labels], 0)
     
-    return tokenized_sentence['input_ids'], tokenized_sentence['token_type_ids'], tokenized_sentence['attention_mask'], one_hot_labels
+    return tokenized_sentence['input_ids'], tokenized_sentence['token_type_ids'], tokenized_sentence['attention_mask'], collated_labels
 
 class ConllDataset(Dataset):
     def __init__(self, data_path):

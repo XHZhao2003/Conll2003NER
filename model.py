@@ -12,7 +12,6 @@ class BertModelNer(nn.Module):
             nn.Linear(in_features=768, out_features=768),
             nn.ReLU(),
             nn.Linear(in_features=768, out_features=label_num),
-            nn.Softmax(dim=2)
         )
 
     def forward(self, input_ids, token_type_ids, attention_masks):
